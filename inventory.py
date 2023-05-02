@@ -1,26 +1,9 @@
-from itertools import product
+# Inputs
 import os
 import time
 import difflib
-inventory = {} # Empty dictionary that will be filled later
 
-#     while True:
-#         
-#         
-#         
-#         
-#         
-#      
-#         for item_ordered in ordered_iitems:
-#             item_amount = int(input(f"How much of {item_ordered} is wanted: "))
-#             inventory[item_ordered] = [inventory[item_ordered][0] - item_amount, inventory[item_ordered][1]]
-#         file = open("restock_update.txt", "w")
-#         file.write("Product|Stock|Price")
-#         for prod, info in inventory.items():
-#             file.write(f"\n{prod}| {info[0]} |{info[1]}")
-#         ask = input("More orders (Y/N): ").lower()
-#         if ask == "n": break
-#     return
+inventory = {} # Empty dictionary that will be filled later
 
 ### First Function (Adding Inventory) ###
 def addinventory(): # Function for user to add inv (fills dict)
@@ -34,10 +17,16 @@ def addinventory(): # Function for user to add inv (fills dict)
     # Checks #
     comma = products.find(",")
     while comma != -1: # For each comma, 
-        if products[comma + 1] == "-": # Checks if there is a - infront of the comma
-            products = products[:comma + 1] + products[comma + 2:] # And gets rid of it
-        if products[comma - 1] == "-": # Checks if there is a - behind of the comma
-            products = products[:comma - 1] + products[comma:] # And gets rid of it
+        d = comma - 1
+        while d >= 0 and products[d] == "-": # Check for dashes in front of the comma
+            d -= 1
+        products = products[:d+1] + products[comma:]
+        
+        d = comma + 1
+        while d < len(products) and products[d] == "-": # Check for dashes behind the comma
+            d += 1
+        products = products[:comma+1] + products[d:]
+        
         comma = products.find(",", comma + 1) # Moves on to the next comma, or -1 if none
     os.system('cls' if os.name =='nt' else 'clear')
 
@@ -87,6 +76,7 @@ def addinventory(): # Function for user to add inv (fills dict)
     file.write("Product|Stock|Price")
     for prod, info in inventory.items():
         file.write(f"\n{prod}| {info[0]} |{info[1]}")
+    file.close()
     return
 
 
@@ -100,14 +90,12 @@ def addstock():
         stock = input(f"How much stock do you want to add to {prod}: ")
 
         # Checks #
-        while True: #Checks if the input can be a number
+        while True:
             try:
-                stock = float(stock)
+                stock = int(stock)
                 break
             except ValueError:
                 stock = input(f"NaN, Please try again: ")
-        while stock % 1 != 0: #Checks if stock is a whole number
-            stock = input(f"Stock must be a whole number, Please try again: ")
 
         # Adding to Dict #
         inventory[prod] = [info[0] + stock, info[1]]
@@ -117,11 +105,14 @@ def addstock():
     file.write("Product|Stock|Price")
     for prod, info in inventory.items():
         file.write(f"\n{prod}| {info[0]} |{info[1]}")
+    file.close()
     return
 
 
+### Third Function (Taking Orders) ###
 def orders():
     global inventory
+    money_made = 0
     os.system('cls' if os.name =='nt' else 'clear')
 
     ## Getting Items for Order ##
@@ -173,7 +164,7 @@ def orders():
             closest_match = difflib.get_close_matches(product, inventory.keys(), n=1, cutoff=0.6)
             if closest_match:
                 new = closest_match[0]
-                order[i] = new
+                order[_] = new
                 print(f"Replaced {product} with {new}")
             else:
                 new = input(f"{product} is not sold at the store, What's the real product: ")
@@ -182,6 +173,43 @@ def orders():
             continue
         _ += 1
     
+    ## Getting Amount for Order ##
+
+    file = open("business_quarter.txt", "w")
+    file.write("Product|Stock|Price")
+
+    for product in order:
+        amount = input(f"How much of {product} has been ordered: ")
+
+        # Checks #
+        while True:
+            try:
+                amount = int(amount)
+                break
+            except ValueError:
+                amount = input(f"NaN, Please try again: ")
+
+        # Writing to File #
+        inventory[product] = [inventory[product][0] - amount, inventory[product][1]]
+
+        file.write(f"{inventory[product]}|{inventory[product][0]}|{inventory[product][1]}")
+        money_made += inventory[product][1] * amount
+
+    money_made = round(money_made, 2)
+    file.write(f"Money Earned: ${money_made}")
+    file.close()
+    return 
+            
+
+
+
+
+
+
+
+
+print ("""""")
+
 
 
 
@@ -195,3 +223,4 @@ def orders():
 
 addinventory()
 addstock()
+orders()
