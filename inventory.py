@@ -2,8 +2,20 @@
 import os
 import time
 import difflib
+import sys
+from textwrap import dedent
 
 inventory = {} # Empty dictionary that will be filled later
+
+def file_reader():
+    os.system('cls' if os.name =='nt' else 'clear')
+    print ("Please input the name of your stock file *MUST BE A .TXT FILE*")
+    file_name = input("(don't include the .txt) > ").replace(".txt", "") + ".txt"
+    while os.path.exists(file_name) != True:
+        file_name = input("Please input an actuall file (don't include the .txt) ").replace(".txt", "") + ".txt"
+    file = open(file_name, "r")
+    print (file.readlines)
+
 
 ### First Function (Adding Inventory) ###
 def addinventory(): # Function for user to add inv (fills dict)
@@ -83,10 +95,11 @@ def addinventory(): # Function for user to add inv (fills dict)
 ### Second Function (Adding Stock) ###
 def addstock():
     global inventory
+    inventory2 = inventory.copy()
     os.system('cls' if os.name =='nt' else 'clear')
 
     ## Getting Stock ##
-    for prod, info in inventory.items():
+    for prod, info in inventory2.items():
         stock = input(f"How much stock do you want to add to {prod}: ")
 
         # Checks #
@@ -98,20 +111,21 @@ def addstock():
                 stock = input(f"NaN, Please try again: ")
 
         # Adding to Dict #
-        inventory[prod] = [info[0] + stock, info[1]]
+        inventory2[prod] = [info[0] + stock, info[1]]
     
     ## File Writing ##
     file = open("restock_update.txt", "w")
     file.write("Product|Stock|Price")
-    for prod, info in inventory.items():
+    for prod, info in inventory2.items():
         file.write(f"\n{prod}| {info[0]} |{info[1]}")
     file.close()
-    return
+    return inventory2
 
 
 ### Third Function (Taking Orders) ###
 def orders():
     global inventory
+    inventory3 = inventory.copy()
     money_made = 0
     os.system('cls' if os.name =='nt' else 'clear')
 
@@ -190,37 +204,87 @@ def orders():
                 amount = input(f"NaN, Please try again: ")
 
         # Writing to File #
-        inventory[product] = [inventory[product][0] - amount, inventory[product][1]]
+        inventory3[product] = [inventory3[product][0] - amount, inventory3[product][1]]
 
-        file.write(f"{inventory[product]}|{inventory[product][0]}|{inventory[product][1]}")
-        money_made += inventory[product][1] * amount
+        file.write(f"{inventory3[product]}|{inventory3[product][0]}|{inventory3[product][1]}")
+        money_made += inventory3[product][1] * amount
 
     money_made = round(money_made, 2)
     file.write(f"Money Earned: ${money_made}")
     file.close()
-    return 
-            
+    return inventory3
+
+### Starting Out ##
+os.system('cls' if os.name =='nt' else 'clear')
+
+print ("""
+
+Welcome to BISS: Bamazon Inventory System Solutions
+
+Here you can: 
+    - Add products to your inventory
+    - Add stock 
+    - Get orders and remove stock
+
+Please enter one of the following commands: 
+1. Add Products For Sale - add products and their price to the inventory 
+2. Add Stock - to add stock to an existing product in your store's inventory                                
+3. Place Order - order items from vendors or customers                        
+4. Quit - exit BISS
 
 
+""")
+command = input("> ") # Input for command
 
 
+while True:
+    try:
+        command = int(command)
+        if command not in [1, 2, 3, 4]:
+            command = input("Please input a valid command ")
+            continue
+        break
+    except ValueError:
+        command = input("Please input a valid command ")
+    
+
+if command == 1:
+    os.system('cls' if os.name =='nt' else 'clear')
+    print (dedent("""
+    When adding products to invintory you can upload a ready made txt file
+
+    OR
+
+    Create a whole new inventory
+
+    Please enter one of the following commands: 
+    1. Add Products For Sale - add products and their price to the inventory 
+    2. Add Stock - to add stock to an existing product in your store's inventory
+
+    """))
+    command = input("> ")
+
+    while command.isdigit() != True:
+        command = input("Please input a valid command ")
+    command = int(command)
+    while command not in [1, 2]:
+        command = input("Please input a valid command ")
+    
+    if command == 1:
+        file_reader()
+        # addinventory()
+    else:
+        addinventory()
+
+elif command == 2:
+    print ("")
+elif command == 3:
+    print ("")
+else:
+    os.system('cls' if os.name =='nt' else 'clear')
+    print ("Thank you for using Bamazon Inventory System Solutions \nHope to see you again")
+    sys.exit()
 
 
-
-
-print ("""""")
-
-
-
-
-
-
-
-
-
-
-
-
-addinventory()
-addstock()
-orders()
+# addstock()
+# orders()
