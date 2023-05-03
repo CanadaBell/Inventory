@@ -1,4 +1,5 @@
 # Inputs
+from itertools import product
 import os
 import time
 import difflib
@@ -6,15 +7,151 @@ import sys
 from textwrap import dedent
 
 inventory = {} # Empty dictionary that will be filled later
+inventory2 = {} # Empty dictionary that will be filled later
+inventory3 = {} # Empty dictionary that will be filled later
 
-def file_reader():
+### Menu Functions ###
+
+## Main Menu ##
+def main_menu():
     os.system('cls' if os.name =='nt' else 'clear')
+    print (dedent("""
+    Welcome to BISS: Bamazon Inventory System Solutions
+
+    Here you can: 
+        - Add products to your inventory
+        - Add stock 
+        - Get orders and remove stock
+
+    Please enter one of the following commands: 
+    1. Add Products For Sale - add products and their price to the inventory 
+    2. Add Stock - to add stock to an existing product in your store's inventory                                
+    3. Place Order - order items from vendors or customers                        
+    4. Quit - exit BISS
+
+    """))
+    command = input("> ") # Input for command
+
+
+    while True:
+        try:
+            command = int(command)
+            if command not in [1, 2, 3, 4]:
+                command = input("Please input a valid command ")
+                continue
+            break
+        except ValueError:
+            command = input("Please input a valid command ")
+    
+    return command
+
+## First Menu ##
+def first_menu():
+    os.system('cls' if os.name =='nt' else 'clear')
+    print (dedent("""
+    When adding products to inventory you can upload a ready made txt file
+
+    OR
+
+    Create a whole new inventory
+
+    Please enter one of the following commands: 
+    1. Upload File 
+    2. Create File
+    3. View Inventory
+    4. Go Back
+
+    """))
+    command = input("> ")
+
+    while True:
+        try:
+            command = int(command)
+            if command not in [1, 2, 3, 4]:
+                command = input("Please input a valid command ")
+                continue
+            break
+        except ValueError:
+            command = input("Please input a valid command ")
+    
+    return command
+
+## Second Menu ##
+def second_menu():
+    os.system('cls' if os.name =='nt' else 'clear')
+    print (dedent("""
+    When adding product stock to inventory you can add stock to each product
+
+    OR
+
+    Look at stock (Run only if you have ran the first option)
+
+    Please enter one of the following commands: 
+    1. Add Stock 
+    2. Look at Inventory
+    3. Go Back
+
+    """))
+    command = input("> ")
+
+    while True:
+        try:
+            command = int(command)
+            if command not in [1, 2, 3]:
+                command = input("Please input a valid command ")
+                continue
+            break
+        except ValueError:
+            command = input("Please input a valid command ")
+    
+    return command
+
+
+
+### File Reader ###
+def file_reader():
+    global inventory
+    os.system('cls' if os.name =='nt' else 'clear')
+
     print ("Please input the name of your stock file *MUST BE A .TXT FILE*")
     file_name = input("(don't include the .txt) > ").replace(".txt", "") + ".txt"
+
     while os.path.exists(file_name) != True:
         file_name = input("Please input an actuall file (don't include the .txt) ").replace(".txt", "") + ".txt"
+
     file = open(file_name, "r")
-    print (file.readlines)
+    for line in file.readlines():
+        line = line.strip().replace("|", "").split()
+
+        if len(line) != 3: continue
+        item = line[0]; stock = line[1]; price = line[2]
+
+        if stock.isdigit() != True: stock = 0
+        stock = int(stock)
+
+        try: price = float(price)
+        except ValueError: continue
+
+        inventory[item] = [stock, price]
+
+    print ("Here is the inventory:")
+    for p,i in inventory.items():
+        print (f"{p}: {i[0]}, {i[1]}")
+    
+    time.sleep(2)
+
+    t = 0
+    while t < 5:
+        sys.stdout.write('\rreturning .')
+        time.sleep(0.1)
+        sys.stdout.write('\rreturning ..')
+        time.sleep(0.1)
+        sys.stdout.write('\rreturning ...')
+        time.sleep(0.1)
+        sys.stdout.write('\rreturning \\')
+        time.sleep(0.1)
+        t += 0.5
+    return
 
 
 ### First Function (Adding Inventory) ###
@@ -94,7 +231,7 @@ def addinventory(): # Function for user to add inv (fills dict)
 
 ### Second Function (Adding Stock) ###
 def addstock():
-    global inventory
+    global inventory, inventory2
     inventory2 = inventory.copy()
     os.system('cls' if os.name =='nt' else 'clear')
 
@@ -119,12 +256,12 @@ def addstock():
     for prod, info in inventory2.items():
         file.write(f"\n{prod}| {info[0]} |{info[1]}")
     file.close()
-    return inventory2
+    return
 
 
 ### Third Function (Taking Orders) ###
 def orders():
-    global inventory
+    global inventory, inventory3
     inventory3 = inventory.copy()
     money_made = 0
     os.system('cls' if os.name =='nt' else 'clear')
@@ -212,79 +349,38 @@ def orders():
     money_made = round(money_made, 2)
     file.write(f"Money Earned: ${money_made}")
     file.close()
-    return inventory3
+    return
 
 ### Starting Out ##
-os.system('cls' if os.name =='nt' else 'clear')
-
-print ("""
-
-Welcome to BISS: Bamazon Inventory System Solutions
-
-Here you can: 
-    - Add products to your inventory
-    - Add stock 
-    - Get orders and remove stock
-
-Please enter one of the following commands: 
-1. Add Products For Sale - add products and their price to the inventory 
-2. Add Stock - to add stock to an existing product in your store's inventory                                
-3. Place Order - order items from vendors or customers                        
-4. Quit - exit BISS
-
-
-""")
-command = input("> ") # Input for command
-
-
 while True:
-    try:
-        command = int(command)
-        if command not in [1, 2, 3, 4]:
-            command = input("Please input a valid command ")
-            continue
-        break
-    except ValueError:
-        command = input("Please input a valid command ")
-    
+    dec = main_menu()
 
-if command == 1:
-    os.system('cls' if os.name =='nt' else 'clear')
-    print (dedent("""
-    When adding products to invintory you can upload a ready made txt file
+    if dec == 1:
+        while True:
+            dec = first_menu()
+            if dec == 1:
+                file_reader()
+                break
+            elif dec == 2:
+                addinventory()
+                break
+            else:
+                break
 
-    OR
+    elif dec == 2:
+        while True:
+            dec = second_menu()
+            if dec == 1:
+                addstock()
+                break
+            elif dec == 2:
+                pass
+            else:
+                break
 
-    Create a whole new inventory
-
-    Please enter one of the following commands: 
-    1. Add Products For Sale - add products and their price to the inventory 
-    2. Add Stock - to add stock to an existing product in your store's inventory
-
-    """))
-    command = input("> ")
-
-    while command.isdigit() != True:
-        command = input("Please input a valid command ")
-    command = int(command)
-    while command not in [1, 2]:
-        command = input("Please input a valid command ")
-    
-    if command == 1:
-        file_reader()
-        # addinventory()
     else:
-        addinventory()
-
-elif command == 2:
-    print ("")
-elif command == 3:
-    print ("")
-else:
-    os.system('cls' if os.name =='nt' else 'clear')
-    print ("Thank you for using Bamazon Inventory System Solutions \nHope to see you again")
-    sys.exit()
-
+        print("Thank you for using Bamazon Inventory System Solutions\nHope to see you again")
+        sys.exit()
 
 # addstock()
 # orders()
